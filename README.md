@@ -1,1 +1,5 @@
 # PasswordManager
+
+
+pip install flask
+pip install cryptography
