@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Password Manager</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Password Manager</h1>
+    <form method="POST" action="/login">
+      <input type="text" name="username" placeholder="Username" required>
+      <input type="password" name="password" placeholder="Master Password" required>
+      <button type="submit">Login</button>
+    </form>
+
+    <form method="POST" action="/register">
+      <input type="text" name="username" placeholder="New Username" required>
+      <input type="password" name="password" placeholder="New Master Password" required>
+      <button type="submit">Register</button>
+    </form>
+  </div>
+</body>
+</html>
