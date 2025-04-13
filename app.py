@@ -32,7 +32,6 @@ def login_route():
         if login(username, password):
             session['username'] = username
             return redirect(url_for('dashboard'))
-        flash(hash_password("hello"))
         flash('Invalid credentials', 'danger')
     return render_template('login.html')
 

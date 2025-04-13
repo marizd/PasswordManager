@@ -9,82 +9,11 @@
 </head>
 <body>
     <div class="container">
-        <div class="profile-section">
-            <a href="/profile">Profile <span class="star">★</span></a>
-        </div>
+        <img src="../static/logo.png" alt="myImage" width="400px">
         
-        <h1>My Passwords <span class="star">★</span></h1>
-        
-        <div class="password-grid">
-            {% if websites %}
-                {% for site in websites %}
-                <div class="password-card">
-                    <h3>{{ site }}</h3>
-                    <div class="card-content">
-                        {% if site_data and site_data[site] %}
-                            {{ site_data[site].username }}
-                        {% else %}
-                            user@example.com
-                        {% endif %}
-                    </div>
-                    <div class="card-footer">
-                        Last modified: 2 days ago
-                    </div>
-                    <div class="action-buttons">
-                        <button class="edit-btn" onclick="editPassword('{{ site }}')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="delete-btn" onclick="deletePassword('{{ site }}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <p>No passwords saved yet. Add your first password below.</p>
-            {% endif %}
-        </div>
-        
-        <h2 class="section-title">Setup 2FA <span class="star">★</span></h2>
-        
-        <div class="password-grid">
-            <div class="password-card">
-                <h3>Email</h3>
-                <div class="card-content">
-                    {{ session.username if session.username else 'john.doe@gmail.com' }}
-                </div>
-                <div class="action-buttons">
-                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
-                    <button class="delete-btn"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>
-            
-            <div class="password-card">
-                <h3>Phone Number</h3>
-                <div class="card-content">
-                    +1 (123) 456-7890
-                </div>
-                <div class="action-buttons">
-                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
-                    <button class="delete-btn"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>
-            
-            <div class="password-card">
-                <h3>Security Question</h3>
-                <div class="card-content">
-                    Set up a security question
-                </div>
-                <div class="action-buttons">
-                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
-                    <button class="delete-btn"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Add Password Form -->
-        <div class="auth-form" style="margin-top: 40px;">
-            <h2>Add New Password</h2>
+    <!-- Add Password Form -->
+        <div class="auth-form" style="margin-top: 0px; min-width: 180%; color:#383c4c;">
+            <h2>Add New Password <span class="star">★</span></h2>
             <form action="/add" method="POST">
                 <label for="website">Website</label>
                 <input type="text" id="website" name="website" placeholder="Website name" required>
@@ -93,27 +22,108 @@
                 <input type="text" id="username" name="username" placeholder="Your username or email for this site">
                 
                 <div class="password-field">
-                    <label for="new-password">Password</label>
-                    <input type="password" id="new-password" name="password" placeholder="Password for this site" required>
-                    <button type="button" class="password-toggle">👁️</button>
+                    <label for="password">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="password" name="password" placeholder="Your password for this site">
+                        <span class="eye-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </span>
+                    </div>
                 </div>
                 
-                <button type="submit">Save Password</button>
+                <button type="submit" class="add-password-btn">Save Password</button>
             </form>
+        </div>
+
+        <div class="pass-form" style="min-width: 180%;color: #383c4c;">
+            <h1>My Passwords <span class="star">★</span></h1>
+            
+            <div class="password-grid">
+                {% if websites %}
+                    {% for site in websites %}
+                    <div class="password-card">
+                        <h3>{{ site }}</h3>
+                        <div class="card-content">
+                            {% if site_data and site_data[site] %}
+                                {{ site_data[site].username }}
+                            {% else %}
+                                user@example.com
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            Last modified: 2 days ago
+                        </div>
+                        <div class="action-buttons">
+                            <button class="edit-btn" onclick="editPassword('{{ site }}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-btn" onclick="deletePassword('{{ site }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No passwords saved yet. Add your first password below.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="MFA-form" style="min-width: 180%; color: #383c4c;">
+            <h2 class="section-title">Setup MFA <span class="star">★</span></h2>
+            
+            <div class="password-grid">
+                <div class="password-card">
+                    <h3>Email</h3>
+                    <div class="card-content">
+                        {{ session.username if session.username else 'john.doe@gmail.com' }}
+                    </div>
+                    <div class="action-buttons">
+                        <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                
+                <div class="password-card">
+                    <h3>Phone Number</h3>
+                    <div class="card-content">
+                        +1 (123) 456-7890
+                    </div>
+                    <div class="action-buttons">
+                        <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                
+                <div class="password-card">
+                    <h3>Security Question</h3>
+                    <div class="card-content">
+                        Set up a security question
+                    </div>
+                    <div class="action-buttons">
+                        <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="profile-section" style="margin-top: 40px;">
+            <a href="/profile">Profile <span class="star">★</span></a>
         </div>
     </div>
 
     <script>
         // Password visibility toggle
-        document.querySelectorAll('.password-toggle').forEach(toggle => {
-            toggle.addEventListener('click', function() {
-                const passwordField = this.previousElementSibling;
-                if (passwordField.type === 'password') {
-                    passwordField.type = 'text';
-                } else {
-                    passwordField.type = 'password';
-                }
-            });
+        document.querySelector('.eye-icon').addEventListener('click', function() {
+            const passwordField = document.getElementById('password');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+            } else {
+                passwordField.type = 'password';
+            }
         });
         
         // Functions for edit and delete
