@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, session, flash, url_for
-from logic import register, login, add_password, get_password, view_websites
+from logic import register, login, add_password, get_password, view_websites, hash_password
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # change to a secure one for deployment
@@ -32,6 +32,7 @@ def login_route():
         if login(username, password):
             session['username'] = username
             return redirect(url_for('dashboard'))
+        flash(hash_password("hello"))
         flash('Invalid credentials', 'danger')
     return render_template('login.html')
 
