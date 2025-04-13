@@ -1,49 +1,140 @@
+@import url('https://fonts.googleapis.com/css2?family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f2f2f2;
-    padding: 20px;
-    color: #333;
+    font-family: 'Arsenal', sans-serif;
+    background-color: #eef1f6;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
 .container {
-    max-width: 600px;
-    margin: auto;
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px #aaa;
+    width: 100%;
+    max-width: 450px;
+    padding: 20px;
 }
 
 h1 {
-    text-align: center;
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 20px;
+    font-weight: 700;
 }
 
-form {
-    margin-bottom: 30px;
+.form-group {
+    margin-bottom: 20px;
 }
 
-input, button {
+label {
     display: block;
+    margin-bottom: 8px;
+    color: #333;
+    font-weight: normal;
+}
+
+input[type="email"],
+input[type="text"],
+input[type="password"] {
     width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    border: 1px solid #aaa;
-    border-radius: 5px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+    font-family: 'Arsenal', sans-serif;
 }
 
-button {
-    background-color: #007BFF;
-    color: white;
-    font-weight: bold;
+.password-container {
+    position: relative;
+}
+
+.eye-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
     cursor: pointer;
+    color: #888;
 }
 
-button:hover {
-    background-color: #0056b3;
+.remember-forgot-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-.result {
-    background-color: #e7f3fe;
-    padding: 15px;
-    border-left: 6px solid #2196F3;
+.checkbox-container {
+    display: flex;
+    align-items: center;
+}
+
+input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.remember-me {
+    color: #333;
+    font-size: 14px;
+}
+
+.forgot-password a {
+    color: #ff5a5f;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #b0b7c0;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 15px;
+    font-family: 'Arsenal', sans-serif;
+}
+
+.signup-link {
+    text-align: center;
+    font-size: 14px;
+}
+
+.signup-link span {
+    color: #333;
+}
+
+.signup-link a {
+    color: #ff5a5f;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.alert {
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
 }

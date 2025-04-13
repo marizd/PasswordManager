@@ -2,47 +2,133 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Password Manager Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Manager - Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <h1>Password Manager</h1>
-
-        <form action="/add" method="POST">
+        <div class="profile-section">
+            <a href="/profile">Profile <span class="star">★</span></a>
+        </div>
+        
+        <h1>My Passwords <span class="star">★</span></h1>
+        
+        <div class="password-grid">
+            {% if websites %}
+                {% for site in websites %}
+                <div class="password-card">
+                    <h3>{{ site }}</h3>
+                    <div class="card-content">
+                        {% if site_data and site_data[site] %}
+                            {{ site_data[site].username }}
+                        {% else %}
+                            user@example.com
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        Last modified: 2 days ago
+                    </div>
+                    <div class="action-buttons">
+                        <button class="edit-btn" onclick="editPassword('{{ site }}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="delete-btn" onclick="deletePassword('{{ site }}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No passwords saved yet. Add your first password below.</p>
+            {% endif %}
+        </div>
+        
+        <h2 class="section-title">Setup 2FA <span class="star">★</span></h2>
+        
+        <div class="password-grid">
+            <div class="password-card">
+                <h3>Email</h3>
+                <div class="card-content">
+                    {{ session.username if session.username else 'john.doe@gmail.com' }}
+                </div>
+                <div class="action-buttons">
+                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                    <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+            
+            <div class="password-card">
+                <h3>Phone Number</h3>
+                <div class="card-content">
+                    +1 (123) 456-7890
+                </div>
+                <div class="action-buttons">
+                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                    <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+            
+            <div class="password-card">
+                <h3>Security Question</h3>
+                <div class="card-content">
+                    Set up a security question
+                </div>
+                <div class="action-buttons">
+                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                    <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add Password Form -->
+        <div class="auth-form" style="margin-top: 40px;">
             <h2>Add New Password</h2>
-            <input type="text" name="website" placeholder="Website" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Save Password</button>
-        </form>
-
-        <form action="/get" method="POST">
-            <h2>Retrieve Password</h2>
-            <input type="text" name="website" placeholder="Website" required>
-            <button type="submit">Get Password</button>
-        </form>
-
-        <form action="/view" method="GET">
-            <h2>View Saved Websites</h2>
-            <button type="submit">Show Websites</button>
-        </form>
-
-        {% if password %}
-            <div class="result">
-                <p><strong>Password for {{ site }}:</strong> {{ password }}</p>
-            </div>
-        {% endif %}
-
-        {% if websites %}
-            <div class="result">
-                <p><strong>Saved Websites:</strong></p>
-                <ul>
-                    {% for site in websites %}
-                        <li>{{ site }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
+            <form action="/add" method="POST">
+                <label for="website">Website</label>
+                <input type="text" id="website" name="website" placeholder="Website name" required>
+                
+                <label for="username">Username/Email</label>
+                <input type="text" id="username" name="username" placeholder="Your username or email for this site">
+                
+                <div class="password-field">
+                    <label for="new-password">Password</label>
+                    <input type="password" id="new-password" name="password" placeholder="Password for this site" required>
+                    <button type="button" class="password-toggle">👁️</button>
+                </div>
+                
+                <button type="submit">Save Password</button>
+            </form>
+        </div>
     </div>
+
+    <script>
+        // Password visibility toggle
+        document.querySelectorAll('.password-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const passwordField = this.previousElementSibling;
+                if (passwordField.type === 'password') {
+                    passwordField.type = 'text';
+                } else {
+                    passwordField.type = 'password';
+                }
+            });
+        });
+        
+        // Functions for edit and delete
+        function editPassword(website) {
+            // Your edit logic here
+            console.log('Edit password for', website);
+        }
+        
+        function deletePassword(website) {
+            if (confirm('Are you sure you want to delete password for ' + website + '?')) {
+                // Your delete logic here
+                console.log('Delete password for', website);
+                // You'll need to add a form submission or fetch request to your backend
+            }
+        }
+    </script>
 </body>
 </html>

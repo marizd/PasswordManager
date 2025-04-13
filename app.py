@@ -15,6 +15,9 @@ def register_route():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        fullname = request.form.get('fullname', '')
+        dob = request.form.get('dob', '')
+        
         if register(username, password):
             flash('Registered successfully! Please log in.', 'success')
             return redirect(url_for('login_route'))
