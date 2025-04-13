@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Arsenal:wght@400;700&display=swap');
 
 body {
     font-family: 'Arsenal', sans-serif;
-    background-color: #eef1f6;
+    background-color: #DEE1E6;
     margin: 0;
     padding: 0;
     display: flex;
@@ -11,14 +11,26 @@ body {
     min-height: 100vh;
 }
 
+form {
+  width: 80%;
+}
+
+.star {
+    color:#ff5a5f;
+}
+
 .container {
     width: 100%;
     max-width: 450px;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 h1 {
-    color: #333;
+    color: #383c4c;
     font-size: 24px;
     margin-bottom: 20px;
     font-weight: 700;
@@ -31,8 +43,9 @@ h1 {
 label {
     display: block;
     margin-bottom: 8px;
-    color: #333;
-    font-weight: normal;
+    color: #383c4c;
+    font-weight: bold;
+    margin-top: 8px;
 }
 
 input[type="email"],
@@ -77,7 +90,7 @@ input[type="checkbox"] {
 }
 
 .remember-me {
-    color: #333;
+    color: #383c4c;
     font-size: 14px;
 }
 
@@ -100,13 +113,32 @@ input[type="checkbox"] {
     font-family: 'Arsenal', sans-serif;
 }
 
+.add-password-btn {
+    width: 30%;
+    padding: 9px;
+    background-color: #b0b7c0;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 15px;
+    margin-top: 15px;
+    font-family: 'Arsenal', sans-serif;
+}
+
+.password-grid{
+    display: flex;
+    gap: 100px;
+}
+
 .signup-link {
     text-align: center;
     font-size: 14px;
 }
 
 .signup-link span {
-    color: #333;
+    color: #383c4c;
 }
 
 .signup-link a {

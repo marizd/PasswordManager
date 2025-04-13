@@ -56,7 +56,7 @@ def login(username, entered_password):
 
 # ---------🔐 Password Management ----------
 
-def add_password(website, password):
+def add_password(website, password, username=""):
     filename = 'passwords.json'
     if os.path.exists(filename):
         try:
@@ -68,7 +68,20 @@ def add_password(website, password):
         data = []
 
     encrypted_pw = encrypt_password(password)
-    data.append({'website': website, 'password': encrypted_pw})
+    
+    # Check if website exists and update it
+    for entry in data:
+        if entry['website'] == website:
+            entry['password'] = encrypted_pw
+            entry['username'] = username
+            break
+    else:
+        # Website doesn't exist, append new entry
+        data.append({
+            'website': website, 
+            'password': encrypted_pw,
+            'username': username
+        })
 
     with open(filename, 'w') as f:
         json.dump(data, f, indent=4)
@@ -95,3 +108,24 @@ def view_websites():
         return [entry['website'] for entry in data]
     except json.JSONDecodeError:
         return []
+
+def delete_password(website):
+    if not os.path.exists('passwords.json'):
+        return False
+    try:
+        with open('passwords.json', 'r') as f:
+            data = json.load(f)
+        
+        # Find and remove the website entry
+        filtered_data = [entry for entry in data if entry['website'] != website]
+        
+        # If no entries were removed, return False
+        if len(filtered_data) == len(data):
+            return False
+            
+        with open('passwords.json', 'w') as f:
+            json.dump(filtered_data, f, indent=4)
+            
+        return True
+    except json.JSONDecodeError:
+        return False

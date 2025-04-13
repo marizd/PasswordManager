@@ -1,137 +1,31 @@
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #eef1f6;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 450px;
-            padding: 20px;
-        }
-        
-        h1 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: normal;
-        }
-        
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-        
-        .password-container {
-            position: relative;
-        }
-        
-        .eye-icon {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #888;
-        }
-        
-        .remember-forgot-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-        }
-        
-        input[type="checkbox"] {
-            margin-right: 10px;
-        }
-        
-        .remember-me {
-            color: #333;
-            font-size: 14px;
-        }
-        
-        .forgot-password a {
-            color: #ff5a5f;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #b0b7c0;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-bottom: 15px;
-        }
-        
-        .signup-link {
-            text-align: center;
-            font-size: 14px;
-        }
-        
-        .signup-link span {
-            color: #333;
-        }
-        
-        .signup-link a {
-            color: #ff5a5f;
-            text-decoration: none;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="../static/style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Login</h1>
-        <form>
+        <img src="../static/title.png" alt="myImage" width="800px">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="{{ url_for('login_route') }}">
             <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email">
+                <label for="username">Email</label>
+                <input type="text" id="username" name="username" required>
             </div>
             
             <div class="form-group">
                 <label for="password">Password</label>
                 <div class="password-container">
-                    <input type="password" id="password" name="password">
+                    <input type="password" id="password" name="password" required>
                     <span class="eye-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -155,7 +49,7 @@
             <button type="submit" class="login-btn">Login</button>
             
             <div class="signup-link">
-                <span>Don't have an account?</span> <a href="#">Sign up</a>
+                <span>Don't have an account?</span> <a href="{{ url_for('register_route') }}">Sign up</a>
             </div>
         </form>
     </div>
