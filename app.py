@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, session, flash, url_for
 from logic import register, login, add_password, get_password, view_websites, hash_password
+from password_manager import send_otp
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # change to a secure one for deployment

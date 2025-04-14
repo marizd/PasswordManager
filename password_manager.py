@@ -223,22 +223,3 @@ while True:
                break
    elif choice == '3':  # If a user wants to quit the program
        break
-
-
-#adding MFA 
-'''def send_otp(receiver_email):
-    otp = str(random.randint(100000, 999999))  # 6-digit OTP
-    msg = EmailMessage()
-    msg.set_content(f"Your OTP for Password Manager login is: {otp}")
-    msg['Subject'] = 'Your OTP Code'
-    msg['From'] = 'MS_VtcUr0@test-r6ke4n1xkdvgon12.mlsender.net'
-    msg['To'] = receiver_email
-
-    try:
-        with smtplib.SMTP_SSL('smtp.mailersend.net', 587) as smtp:
-            smtp.login('MS_VtcUr0@test-r6ke4n1xkdvgon12.mlsender.net', 'mssp.Bkm9C0s.jpzkmgqyx3nl059v.hbk4MIs')  # Use App Password
-            smtp.send_message(msg)
-        return otp
-    except Exception as e:
-        print(f"\n[-] Failed to send OTP: {e}")
-        return None'''
