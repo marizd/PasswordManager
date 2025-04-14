@@ -1,5 +1,8 @@
 import json, hashlib, getpass, os, pyperclip, sys
 from cryptography.fernet import Fernet
+import smtplib
+import random
+from email.message import EmailMessage
 
 # Function for Hashing the Master Password.
 def hash_password(password):
@@ -29,6 +32,10 @@ def decrypt_password(cipher, encrypted_password):
 
 #function for owner regisration, saving credentials in user data file. 
 def register(username, master_password):
+ #email field, during login after password is verified, send OTP
+ email = input("Enter your email address for MFA: ")
+ hashed_master_password = hash_password(master_password)
+ user_data = {'username': username, 'master_password': hashed_master_password, 'email': email}
    #encrypt master password before storing it
  hashed_master_password = hash_password(master_password)
  user_data = {'username': username, 'master_password': hashed_master_password}
@@ -44,7 +51,24 @@ def register(username, master_password):
        json.dump(user_data, file)
        print("\n[+] Regisration complete!!\n")
 
+#adding MFA 
+def send_otp(receiver_email):
+    otp = str(random.randint(100000, 999999))  # 6-digit OTP
+    msg = EmailMessage()
+    msg.set_content(f"Your OTP for Password Manager login is: {otp}")
+    msg['Subject'] = 'Your OTP Code'
+    msg['From'] = 'MS_VtcUr0@test-r6ke4n1xkdvgon12.mlsender.net'
+    msg['To'] = receiver_email
 
+    try:
+        with smtplib.SMTP('smtp.mailersend.net', 587) as smtp:
+            smtp.starttls()
+            smtp.login('MS_VtcUr0@test-r6ke4n1xkdvgon12.mlsender.net', 'mssp.Bkm9C0s.jpzkmgqyx3nl059v.hbk4MIs')  # Use App Password
+            smtp.send_message(msg)
+        return otp
+    except Exception as e:
+        print(f"\n[-] Failed to send OTP: {e}")
+        return None
 
 #function to log a user in, it accepts a username and password, hashes password entered by user, if hash is the same as saved password (JSON file) and usernames are the same access is granted
 def login(username, entered_password):
@@ -53,13 +77,22 @@ def login(username, entered_password):
          user_data = json.load(file)
       stored_password_hash = user_data.get('master_password')
       entered_password_hash = hash_password(entered_password)
-      if entered_password == stored_password_hash and username == user_data.get('username'):
-         print("\n[+] Login Successful...\n")
+      if entered_password_hash == stored_password_hash and username == user_data.get('username'):
+         print("\n[+] Password verified. Sending OTP...\n")
+         otp = send_otp(user_data['username'])
+         if otp:
+            entered_otp = input("Enter the OTP sent to your email: ")
+            if entered_otp == otp:
+               print("\n[+] MFA successful! Logged in.\n")
+               return True
+            else:
+               print("\n[-] Incorrect OTP. Access denied.\n")
+               sys.exit()
       else:
          print("\n[-] Invalid Login Credentials.\n")
          sys.exit()
-   except Exception:
-      print("\n[-] You have not registered.\n")
+   except Exception as e:
+      print("\n[-] You have not registered or an error occured.\n")
       sys.exit()
 
 #view saved websites 
@@ -166,7 +199,7 @@ while True:
            print("1. Add Password")
            print("2. Get Password")
            print("3. View Saved websites")
-           print("4. Quit")
+           print("4. Go Back")
            password_choice = input("Enter your choice: ")
            if password_choice == '1':  # If a user wants to add a password
                website = input("Enter website: ")
@@ -192,3 +225,20 @@ while True:
        break
 
 
+#adding MFA 
+'''def send_otp(receiver_email):
+    otp = str(random.randint(100000, 999999))  # 6-digit OTP
+    msg = EmailMessage()
+    msg.set_content(f"Your OTP for Password Manager login is: {otp}")
+    msg['Subject'] = 'Your OTP Code'
+    msg['From'] = 'MS_VtcUr0@test-r6ke4n1xkdvgon12.mlsender.net'
+    msg['To'] = receiver_email
+
+    try:
+        with smtplib.SMTP_SSL('smtp.mailersend.net', 587) as smtp:
+            smtp.login('MS_VtcUr0@test-r6ke4n1xkdvgon12.mlsender.net', 'mssp.Bkm9C0s.jpzkmgqyx3nl059v.hbk4MIs')  # Use App Password
+            smtp.send_message(msg)
+        return otp
+    except Exception as e:
+        print(f"\n[-] Failed to send OTP: {e}")
+        return None'''

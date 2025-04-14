@@ -1,37 +1,30 @@
 Unit Testing Instructions
 
-1. make sure the main code files and test_manager.py are in the same directory
-2. open the terminal and navigate to the project directory
-3. run the following test: python -m unittest test_password_manager.py
-This test confirms registration/login, password encryption/decryption, and adding/retrieving passwords is functionable
+Overview:
+The test suite verifies the core functionality of the password management system including password hashing, encryption/decryption, and storage/retrieval operations.
 
-test_password_manager.py
+Test File Contents
+1. The test_password_manager.py file includes tests for the following functions:
+    - hash_password: Tests that passwords are properly hashed
+    - encrypt_password and decrypt_password: Tests encryption and decryption functionality
+    - add_password and get_password: Tests storing and retrieving passwords
 
-import unittest
-import os
-from password_manager import hash_password, encrypt_password, decrypt_password, add_password, get_password, initialize_cipher, generate_key
+Prerequisites:
+Before running the tests, ensure you have:
+    - Python 3.x installed
+    - The Password Manager application files
+    - Required dependencies installed: pip install cryptography pyperclip
 
-class TestPasswordManager(unittest.TestCase):
-    def setUp(self):
-        self.test_key = generate_key()
-        self.cipher = initialize_cipher(self.test_key)
+Running the Tests:
+To run the tests, simply execute the test file directly with Python:
+    - python test_password_manager.py
 
-    def test_hash_password(self):
-        hashed = hash_password("securepassword")
-        self.assertEqual(len(hashed), 64)
+What the Tests Verify:
+1. Password Hashing: Ensures the hashing function produces a 64-character hex string
+2. Encryption/Decryption: Tests that passwords can be encrypted and then correctly decrypted
+3. Storage & Retrieval: Confirms that passwords can be saved and later retrieved accurately
 
-    def test_encrypt_decrypt_password(self):
-        original = "mypassword123"
-        encrypted = encrypt_password(self.cipher, original)
-        decrypted = decrypt_password(self.cipher, encrypted)
-        self.assertEqual(original, decrypted)
-
-    def test_add_and_get_password(self):
-        website = "testsite.com"
-        password = "Test123!"
-        add_password(website, password)
-        retrieved = get_password(website)
-        self.assertEqual(password, retrieved)
-
-if __name__ == '__main__':
-    unittest.main()
+Important Notes:
+1. The tests use temporary encryption keys generated during test execution
+2. Tests will interact with the regular password storage files (passwords.json), so back up any existing files before testing
+3. Make sure the Password Manager application is in the same directory as the test file
