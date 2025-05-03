@@ -2,7 +2,12 @@ import json, hashlib, getpass, os, pyperclip, sys
 from cryptography.fernet import Fernet
 import smtplib
 import random
+import time
+import pyotp
+import qrcode
 from email.message import EmailMessage
+
+
 
 # Function for Hashing the Master Password.
 def hash_password(password):
@@ -24,13 +29,13 @@ def initialize_cipher(key):
 def encrypt_password(cipher, password):
    return cipher.encrypt(password.encode()).decode()
 
-#Function to decrypt a password 
+#Function to decrypt a password
 def decrypt_password(cipher, encrypted_password):
    return cipher.decrypt(encrypted_password.encode()).decode()
 
 
 
-#function for owner regisration, saving credentials in user data file. 
+#function for owner regisration, saving credentials in user data file.
 def register(username, master_password):
  #email field, during login after password is verified, send OTP
  email = input("Enter your email address for MFA: ")
@@ -49,53 +54,45 @@ def register(username, master_password):
  else:
     with open(file_name, 'x') as file:
        json.dump(user_data, file)
-       print("\n[+] Regisration complete!!\n")
+       print("\n[+] Registration complete!!\n")
 
-#adding MFA 
-def send_otp(receiver_email):
-    otp = str(random.randint(100000, 999999))  # 6-digit OTP
-    msg = EmailMessage()
-    msg.set_content(f"Your OTP for Password Manager login is: {otp}")
-    msg['Subject'] = 'Your OTP Code'
-    msg['From'] = 'MS_VtcUr0@test-r6ke4n1xkdvgon12.mlsender.net'
-    msg['To'] = receiver_email
 
-    try:
-        with smtplib.SMTP('smtp.mailersend.net', 587) as smtp:
-            smtp.starttls()
-            smtp.login('MS_VtcUr0@test-r6ke4n1xkdvgon12.mlsender.net', 'mssp.Bkm9C0s.jpzkmgqyx3nl059v.hbk4MIs')  # Use App Password
-            smtp.send_message(msg)
-        return otp
-    except Exception as e:
-        print(f"\n[-] Failed to send OTP: {e}")
-        return None
 
 #function to log a user in, it accepts a username and password, hashes password entered by user, if hash is the same as saved password (JSON file) and usernames are the same access is granted
 def login(username, entered_password):
    try:
-      with open('user_data.json', 'r') as file:
-         user_data = json.load(file)
-      stored_password_hash = user_data.get('master_password')
-      entered_password_hash = hash_password(entered_password)
-      if entered_password_hash == stored_password_hash and username == user_data.get('username'):
-         print("\n[+] Password verified. Sending OTP...\n")
-         otp = send_otp(user_data['username'])
-         if otp:
-            entered_otp = input("Enter the OTP sent to your email: ")
-            if entered_otp == otp:
-               print("\n[+] MFA successful! Logged in.\n")
-               return True
-            else:
-               print("\n[-] Incorrect OTP. Access denied.\n")
-               sys.exit()
-      else:
-         print("\n[-] Invalid Login Credentials.\n")
-         sys.exit()
-   except Exception as e:
-      print("\n[-] You have not registered or an error occured.\n")
-      sys.exit()
+        with open('user_data.json', 'r') as file:
+            user_data = json.load(file)
 
-#view saved websites 
+        stored_password_hash = user_data.get('master_password')
+        entered_password_hash = hash_password(entered_password)
+
+        if entered_password_hash == stored_password_hash and username == user_data.get('username'):
+            print("\n[+] Password verified.")
+
+            # Start MFA with OTP (outputs QR code, with code changing every 30 seconds)
+            otpkey = "MyKey"
+            uri = pyotp.totp.TOTP(otpkey).provisioning_uri(name=username, issuer_name="Password Manager")
+            print(uri)
+            qrcode.make(uri).save("qrcode.jpg")
+            totp = pyotp.TOTP(otpkey)
+            code = input("Enter code: ")
+            if totp.verify(code):
+                print("\n[+] OTP verified successfully Login successful.\n")
+            else:
+                print("\n[-] Invalid OTP. Access denied.\n")
+                sys.exit()
+
+
+        else:
+            print("\n[-] Invalid Login Credentials.\n")
+            sys.exit()
+
+   except Exception:
+        print("\n[-] You have not registered.\n")
+        sys.exit()
+
+#view saved websites
 def view_websites():
   try:
       with open('passwords.json', 'r') as data:
@@ -105,7 +102,7 @@ def view_websites():
          print(x['website'])
       print('\n')
   except FileNotFoundError:
-     print("\n[-] You have not saved any passwords!\n")  
+     print("\n[-] You have not saved any passwords!\n")
 
 #Load or generate encryption key, if first time then generate and save key
 key_filename = 'encryption_key.key'
@@ -169,7 +166,7 @@ def get_password(website):
 #takes website as parameter and returns decrypted password to user
 
 
-#main program - still need MFA and display of strong passwords 
+#main program - still need MFA and display of strong passwords
 # Infinite loop to keep the program running until the user chooses to quit.
 while True:
    print("1. Register")
@@ -178,7 +175,7 @@ while True:
    choice = input("Enter your choice: ")
    if choice == '1':  # If a user wants to register
        file = 'user_data.json'
-       if os.path.exists(file) and os.path.getsize(file) != 0:
+       if os.path.exists(file) and os.path.getsize(file) > 0:
            print("\n[-] Master user already exists!!")
            sys.exit()
        else:
@@ -199,7 +196,7 @@ while True:
            print("1. Add Password")
            print("2. Get Password")
            print("3. View Saved websites")
-           print("4. Go Back")
+           print("4. Quit")
            password_choice = input("Enter your choice: ")
            if password_choice == '1':  # If a user wants to add a password
                website = input("Enter website: ")
