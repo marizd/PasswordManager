@@ -6,8 +6,12 @@ import time
 import pyotp
 import qrcode
 from email.message import EmailMessage
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
+sender_email = "passmanager2025utd@gmail.com"
 
+sender_password = "qqit yfmg qgqp zfeb"
 
 # Function for Hashing the Master Password.
 def hash_password(password):
@@ -39,6 +43,9 @@ def decrypt_password(cipher, encrypted_password):
 def register(username, master_password):
  #email field, during login after password is verified, send OTP
  email = input("Enter your email address for MFA: ")
+ global receiver_email
+ receiver_email = email
+
  hashed_master_password = hash_password(master_password)
  user_data = {'username': username, 'master_password': hashed_master_password, 'email': email}
    #encrypt master password before storing it
@@ -55,6 +62,8 @@ def register(username, master_password):
     with open(file_name, 'x') as file:
        json.dump(user_data, file)
        print("\n[+] Registration complete!!\n")
+
+
 
 
 
@@ -86,6 +95,24 @@ def login(username, entered_password):
 
         else:
             print("\n[-] Invalid Login Credentials.\n")
+            message = MIMEMultipart()
+            message["From"] = sender_email
+            message["To"] = receiver_email
+            message["Subject"] = "Security Alert"
+            body = "Failed login attempt detected."
+            message.attach(MIMEText(body, "plain"))
+
+            # Connect to Gmail SMTP server and send email
+            try:
+                server = smtplib.SMTP("smtp.gmail.com", 587)
+                server.starttls()  # Secure the connection
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, receiver_email, message.as_string())
+                print("Email sent successfully.")
+            except Exception as e:
+                print(f"Failed to send email: {e}")
+            finally:
+                server.quit()
             sys.exit()
 
    except Exception:
