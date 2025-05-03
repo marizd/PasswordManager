@@ -1,249 +1,210 @@
-import json, hashlib, getpass, os, pyperclip, sys
-from cryptography.fernet import Fernet
+import json
+import hashlib
+import getpass
+import os
+import pyperclip
+import sys
 import smtplib
-import random
-import time
 import pyotp
-import qrcode
+from cryptography.fernet import Fernet
 from email.message import EmailMessage
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from dotenv import load_dotenv
 
-sender_email = "passmanager2025utd@gmail.com"
+# Load environment variables
+load_dotenv()
+EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
-sender_password = "qqit yfmg qgqp zfeb"
-
-# Function for Hashing the Master Password.
+# --------- Hashing ---------
 def hash_password(password):
-   sha256 = hashlib.sha256()
-   sha256.update(password.encode())
-   return sha256.hexdigest()
+    sha256 = hashlib.sha256()
+    sha256.update(password.encode())
+    return sha256.hexdigest()
 
-
-#encrypt passwords upon adding and decrypt upon retrieval
-#generate a secret key - should only be done once to avoid errors
+# --------- Encryption ---------
 def generate_key():
-   return Fernet.generate_key() #making it able to encrypt and decrypt passwords
+    return Fernet.generate_key()
 
-#initialize fernet cipher with provided key
 def initialize_cipher(key):
-   return Fernet(key)
+    return Fernet(key)
 
-#Function to encrypt a password
 def encrypt_password(cipher, password):
-   return cipher.encrypt(password.encode()).decode()
+    return cipher.encrypt(password.encode()).decode()
 
-#Function to decrypt a password
 def decrypt_password(cipher, encrypted_password):
-   return cipher.decrypt(encrypted_password.encode()).decode()
+    return cipher.decrypt(encrypted_password.encode()).decode()
 
+# --------- OTP Email ---------
+def send_otp(email):
+    secret = pyotp.random_base32()
+    totp = pyotp.TOTP(secret)
+    otp = totp.now()
 
+    msg = EmailMessage()
+    msg.set_content(f"Your OTP is: {otp}")
+    msg["Subject"] = "Your Login OTP"
+    msg["From"] = EMAIL_ADDRESS
+    msg["To"] = email
 
-#function for owner regisration, saving credentials in user data file.
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
+            smtp.starttls()
+            smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            smtp.send_message(msg)
+            print("[+] OTP sent to email.")
+    except Exception as e:
+        print("[-] Failed to send OTP:", e)
+
+    return secret
+
+# --------- User Registration ---------
 def register(username, master_password):
- #email field, during login after password is verified, send OTP
- email = input("Enter your email address for MFA: ")
- global receiver_email
- receiver_email = email
+    email = input("Enter your email address for MFA: ")
+    hashed_master_password = hash_password(master_password)
+    user_data = {
+        "username": username,
+        "master_password": hashed_master_password,
+        "email": email
+    }
+    file_name = "user_data.json"
 
- hashed_master_password = hash_password(master_password)
- user_data = {'username': username, 'master_password': hashed_master_password, 'email': email}
-   #encrypt master password before storing it
- hashed_master_password = hash_password(master_password)
- user_data = {'username': username, 'master_password': hashed_master_password}
- file_name = 'user_data.json'
+    if not os.path.exists(file_name) or os.path.getsize(file_name) == 0:
+        with open(file_name, "w") as file:
+            json.dump(user_data, file)
+            print("\n[+] Registration complete!\n")
+    else:
+        print("\n[-] User already exists.\n")
 
- if os.path.exists(file_name) and os.path.getsize(file_name) == 0:
-    with open(file_name, 'w') as file:
-       json.dump(user_data, file)
-       print("\n[+] Registration complete!!/n")
-
- else:
-    with open(file_name, 'x') as file:
-       json.dump(user_data, file)
-       print("\n[+] Registration complete!!\n")
-
-
-
-
-
-#function to log a user in, it accepts a username and password, hashes password entered by user, if hash is the same as saved password (JSON file) and usernames are the same access is granted
+# --------- User Login ---------
 def login(username, entered_password):
-   try:
-        with open('user_data.json', 'r') as file:
+    try:
+        with open("user_data.json", "r") as file:
             user_data = json.load(file)
 
-        stored_password_hash = user_data.get('master_password')
+        stored_password_hash = user_data.get("master_password")
         entered_password_hash = hash_password(entered_password)
 
-        if entered_password_hash == stored_password_hash and username == user_data.get('username'):
+        if entered_password_hash == stored_password_hash and username == user_data.get("username"):
             print("\n[+] Password verified.")
 
-            # Start MFA with OTP (outputs QR code, with code changing every 30 seconds)
-            otpkey = "MyKey"
-            uri = pyotp.totp.TOTP(otpkey).provisioning_uri(name=username, issuer_name="Password Manager")
-            print(uri)
-            qrcode.make(uri).save("qrcode.jpg")
-            totp = pyotp.TOTP(otpkey)
-            code = input("Enter code: ")
+            secret = send_otp(user_data.get("email"))
+            totp = pyotp.TOTP(secret)
+            code = input("Enter OTP sent to your email: ")
+
             if totp.verify(code):
-                print("\n[+] OTP verified successfully Login successful.\n")
+                print("\n[+] OTP verified successfully. Login successful.\n")
             else:
                 print("\n[-] Invalid OTP. Access denied.\n")
                 sys.exit()
-
-
         else:
             print("\n[-] Invalid Login Credentials.\n")
-            message = MIMEMultipart()
-            message["From"] = sender_email
-            message["To"] = receiver_email
-            message["Subject"] = "Security Alert"
-            body = "Failed login attempt detected."
-            message.attach(MIMEText(body, "plain"))
-
-            # Connect to Gmail SMTP server and send email
-            try:
-                server = smtplib.SMTP("smtp.gmail.com", 587)
-                server.starttls()  # Secure the connection
-                server.login(sender_email, sender_password)
-                server.sendmail(sender_email, receiver_email, message.as_string())
-                print("Email sent successfully.")
-            except Exception as e:
-                print(f"Failed to send email: {e}")
-            finally:
-                server.quit()
             sys.exit()
 
-   except Exception:
-        print("\n[-] You have not registered.\n")
+    except Exception as e:
+        print(f"\n[-] You have not registered or an error occurred: {e}\n")
         sys.exit()
 
-#view saved websites
-def view_websites():
-  try:
-      with open('passwords.json', 'r') as data:
-       view = json.load(data)
-      print("\nWebsites saved\n")
-      for x in view:
-         print(x['website'])
-      print('\n')
-  except FileNotFoundError:
-     print("\n[-] You have not saved any passwords!\n")
-
-#Load or generate encryption key, if first time then generate and save key
-key_filename = 'encryption_key.key'
+# --------- Password Storage ---------
+key_filename = "encryption_key.key"
 if os.path.exists(key_filename):
-   with open(key_filename, 'rb') as key_file:
-       key = key_file.read()
+    with open(key_filename, "rb") as key_file:
+        key = key_file.read()
 else:
-   key = generate_key()
-   with open(key_filename, 'wb') as key_file:
-       key_file.write(key)
+    key = generate_key()
+    with open(key_filename, "wb") as key_file:
+        key_file.write(key)
 
 cipher = initialize_cipher(key)
-#checks if encryption_key.key file exists, if it does then load for use but if not it creates and saves unique key in it.
 
-
-
-#function to add/save passwords
 def add_password(website, password):
-   # Check if passwords.json exists
-   if not os.path.exists('passwords.json'):
-       # If passwords.json doesn't exist, initialize it with an empty list
-       data = []
-   else:
-       # Load existing data from passwords.json
-       try:
-           with open('passwords.json', 'r') as file:
-               data = json.load(file)
-       except json.JSONDecodeError:
-           # Handle the case where passwords.json is empty or invalid JSON.
-           data = []
-   # Encrypt the password
-   encrypted_password = encrypt_password(cipher, password)
-   # Create a dictionary to store the website and password
-   password_entry = {'website': website, 'password': encrypted_password}
-   data.append(password_entry)
-   # Save the updated list back to passwords.json
-   with open('passwords.json', 'w') as file:
-       json.dump(data, file, indent=4)
-#encrypt the passwords and save them in JSON file
+    filename = "passwords.json"
+    if os.path.exists(filename):
+        try:
+            with open(filename, "r") as f:
+                data = json.load(f)
+        except json.JSONDecodeError:
+            data = []
+    else:
+        data = []
 
+    encrypted_pw = encrypt_password(cipher, password)
+    data.append({"website": website, "password": encrypted_pw})
 
+    with open(filename, "w") as f:
+        json.dump(data, f, indent=4)
 
-#Function to retrieve the saved passwords
 def get_password(website):
-   # Check if passwords.json exists
-   if not os.path.exists('passwords.json'):
-       return None
-   # Load existing data from passwords.json
-   try:
-       with open('passwords.json', 'r') as file:
-           data = json.load(file)
-   except json.JSONDecodeError:
-       data = []
-   # Loop through all the websites and check if the requested website exists.
-   for entry in data:
-       if entry['website'] == website:
-           # Decrypt and return the password
-           decrypted_password = decrypt_password(cipher, entry['password'])
-           return decrypted_password
-   return None
-#takes website as parameter and returns decrypted password to user
+    if not os.path.exists("passwords.json"):
+        return None
+    try:
+        with open("passwords.json", "r") as f:
+            data = json.load(f)
+        for entry in data:
+            if entry["website"] == website:
+                return decrypt_password(cipher, entry["password"])
+    except json.JSONDecodeError:
+        pass
+    return None
 
+def view_websites():
+    if not os.path.exists("passwords.json"):
+        print("\n[-] You have not saved any passwords!\n")
+        return
+    try:
+        with open("passwords.json", "r") as f:
+            data = json.load(f)
+        print("\nWebsites saved:")
+        for entry in data:
+            print(entry["website"])
+        print()
+    except json.JSONDecodeError:
+        print("\n[-] Error reading saved passwords.\n")
 
-#main program - still need MFA and display of strong passwords
-# Infinite loop to keep the program running until the user chooses to quit.
-while True:
-   print("1. Register")
-   print("2. Login")
-   print("3. Quit")
-   choice = input("Enter your choice: ")
-   if choice == '1':  # If a user wants to register
-       file = 'user_data.json'
-       if os.path.exists(file) and os.path.getsize(file) > 0:
-           print("\n[-] Master user already exists!!")
-           sys.exit()
-       else:
-           username = input("Enter your username: ")
-           master_password = getpass.getpass("Enter your master password: ")
-           register(username, master_password)
-   elif choice == '2':  # If a User wants to log in
-       file = 'user_data.json'
-       if os.path.exists(file):
-           username = input("Enter your username: ")
-           master_password = getpass.getpass("Enter your master password: ")
-           login(username, master_password)
-       else:
-           print("\n[-] You have not registered. Please do that.\n")
-           sys.exit()
-       # Various options after a successful Login.
-       while True:
-           print("1. Add Password")
-           print("2. Get Password")
-           print("3. View Saved websites")
-           print("4. Quit")
-           password_choice = input("Enter your choice: ")
-           if password_choice == '1':  # If a user wants to add a password
-               website = input("Enter website: ")
-               password = getpass.getpass("Enter password: ")
-               # Encrypt and add the password
-               add_password(website, password)
-               print("\n[+] Password added!\n")
-           elif password_choice == '2':  # If a User wants to retrieve a password
-               website = input("Enter website: ")
-               decrypted_password = get_password(website)
-               if website and decrypted_password:
-                   # Copy password to clipboard for convenience
-                   pyperclip.copy(decrypted_password)
-                   print(f"\n[+] Password for {website}: {decrypted_password}\n[+] Password copied to clipboard.\n")
-               else:
-                   print("\n[-] Password not found! Did you save the password?"
-                         "\n[-] Use option 3 to see the websites you saved.\n")
-           elif password_choice == '3':  # If a user wants to view saved websites
-               view_websites()
-           elif password_choice == '4':  # If a user wants to quit the password manager
-               break
-   elif choice == '3':  # If a user wants to quit the program
-       break
+# --------- CLI Entry Point ---------
+if __name__ == "__main__":
+    while True:
+        print("1. Register")
+        print("2. Login")
+        print("3. Quit")
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            username = input("Enter your username: ")
+            master_password = getpass.getpass("Enter your master password: ")
+            register(username, master_password)
+
+        elif choice == "2":
+            username = input("Enter your username: ")
+            master_password = getpass.getpass("Enter your master password: ")
+            login(username, master_password)
+
+            while True:
+                print("1. Add Password")
+                print("2. Get Password")
+                print("3. View Saved Websites")
+                print("4. Logout")
+                sub_choice = input("Enter your choice: ")
+
+                if sub_choice == "1":
+                    site = input("Enter website: ")
+                    pw = getpass.getpass("Enter password: ")
+                    add_password(site, pw)
+                    print("[+] Password added!\n")
+
+                elif sub_choice == "2":
+                    site = input("Enter website: ")
+                    pw = get_password(site)
+                    if pw:
+                        pyperclip.copy(pw)
+                        print(f"[+] Password: {pw}\n[+] Copied to clipboard.\n")
+                    else:
+                        print("[-] Password not found.\n")
+
+                elif sub_choice == "3":
+                    view_websites()
+
+                elif sub_choice == "4":
+                    break
+
+        elif choice == "3":
+            break
