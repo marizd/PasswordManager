@@ -3,14 +3,6 @@ import os
 import hashlib
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
-import pyotp
-import smtplib
-from email.message import EmailMessage
-
-# Load environment variables
-load_dotenv()
-EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 # ---------------- Encryption Setup ----------------
 
@@ -43,100 +35,64 @@ def hash_password(password):
     sha256.update(password.encode())
     return sha256.hexdigest()
 
-def register(username, password):
-    users = []
-    if os.path.exists('user_data.json'):
-        with open('user_data.json', 'r') as f:
-            try:
-                users = json.load(f)
-            except json.JSONDecodeError:
-                users = []
+def load_users():
+    if not os.path.exists('user_data.json'):
+        return []
+    with open('user_data.json', 'r') as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return []
 
-        if any(u['username'] == username for u in users):
-            return False
-
-    hashed_pw = hash_password(password)
-    users.append({'username': username, 'master_password': hashed_pw})
-
+def save_users(users):
     with open('user_data.json', 'w') as f:
         json.dump(users, f, indent=4)
 
+def register(username, password):
+    users = load_users()
+    if any(u['username'] == username for u in users):
+        return False
+
+    hashed_pw = hash_password(password)
+    users.append({'username': username, 'master_password': hashed_pw})
+    save_users(users)
     return True
 
 def login(username, password):
-    if not os.path.exists('user_data.json'):
-        return False
-
-    with open('user_data.json', 'r') as f:
-        users = json.load(f)
-        for u in users:
-            if u['username'] == username and u['master_password'] == hash_password(password):
-                return True
-
+    users = load_users()
+    for u in users:
+        if u['username'] == username and u['master_password'] == hash_password(password):
+            return True
     return False
-
-# ---------------- OTP Email MFA ----------------
-
-def send_otp(email):
-    secret = pyotp.random_base32()
-    totp = pyotp.TOTP(secret)
-    otp = totp.now()
-
-    msg = EmailMessage()
-    msg.set_content(f"Your OTP is: {otp}")
-    msg['Subject'] = 'Your Login OTP'
-    msg['From'] = EMAIL_ADDRESS
-    msg['To'] = email
-
-    try:
-        with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
-            smtp.starttls()
-            smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-            smtp.send_message(msg)
-        return secret
-    except Exception as e:
-        print("Failed to send OTP:", e)
-        return None
-
-def verify_otp(secret, code):
-    totp = pyotp.TOTP(secret)
-    return totp.verify(code)
 
 # ---------------- Password Management ----------------
 
-def add_password(website, password):
-    if os.path.exists('passwords.json'):
+def load_passwords():
+    if not os.path.exists('passwords.json'):
+        return []
+    with open('passwords.json', 'r') as f:
         try:
-            with open('passwords.json', 'r') as f:
-                data = json.load(f)
+            return json.load(f)
         except json.JSONDecodeError:
-            data = []
-    else:
-        data = []
+            return []
 
-    encrypted_pw = encrypt_password(password)
-    data.append({'website': website, 'password': encrypted_pw})
-
+def save_passwords(data):
     with open('passwords.json', 'w') as f:
         json.dump(data, f, indent=4)
 
-def get_password(website):
-    if not os.path.exists('passwords.json'):
-        return None
+def add_password(website, password):
+    data = load_passwords()
+    encrypted_pw = encrypt_password(password)
+    data.append({'website': website, 'password': encrypted_pw})
+    save_passwords(data)
 
-    with open('passwords.json', 'r') as f:
-        data = json.load(f)
-        for entry in data:
-            if entry['website'] == website:
-                return decrypt_password(entry['password'])
+def get_password(website):
+    data = load_passwords()
+    for entry in data:
+        if entry['website'] == website:
+            return decrypt_password(entry['password'])
     return None
 
 def view_websites():
-    if not os.path.exists('passwords.json'):
-        return []
-    try:
-        with open('passwords.json', 'r') as f:
-            data = json.load(f)
-        return [entry['website'] for entry in data]
-    except json.JSONDecodeError:
-        return []
+    data = load_passwords()
+    return [entry['website'] for entry in data]

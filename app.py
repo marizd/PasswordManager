@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, session, flash, url_for
-from logic import register, login, add_password, get_password, view_websites, send_otp, verify_otp
+from logic import register, login, add_password, get_password, view_websites
 
 app = Flask(__name__)
 app.secret_key = 'your_secure_secret_key'
@@ -28,21 +28,10 @@ def login_route():
         password = request.form['password']
         if login(username, password):
             session['username'] = username
-            session['otp_secret'] = send_otp("your@email.com")  # Replace with dynamic email if implemented
-            return redirect(url_for('verify_otp_route'))
+            flash('Login successful.', 'success')
+            return redirect(url_for('dashboard'))
         flash('Invalid credentials', 'danger')
     return render_template('login.html')
-
-@app.route('/verify-otp', methods=['GET', 'POST'])
-def verify_otp_route():
-    if request.method == 'POST':
-        code = request.form['otp']
-        if verify_otp(session.get('otp_secret', ''), code):
-            flash('OTP verified. Welcome!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid OTP.', 'danger')
-    return render_template('verify_otp.html')
 
 @app.route('/dashboard')
 def dashboard():
