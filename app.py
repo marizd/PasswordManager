@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, redirect, session, flash, url_for
-from logic import register, login, add_password, get_password, view_websites
+from flask import Flask, render_template, request, redirect, session, flash, url_for, jsonify
+from logic import register, login, add_password, get_password, view_websites, load_passwords, save_passwords, encrypt_password
 
 app = Flask(__name__)
 app.secret_key = 'your_secure_secret_key'
@@ -38,7 +38,8 @@ def dashboard():
     if 'username' not in session:
         return redirect(url_for('login_route'))
     websites = view_websites()
-    return render_template('dashboard.html', websites=websites)
+    site_data = {entry['website']: {'username': 'user@example.com'} for entry in load_passwords()}
+    return render_template('dashboard.html', websites=websites, site_data=site_data)
 
 @app.route('/add', methods=['POST'])
 def add():
@@ -53,6 +54,24 @@ def retrieve():
     password = get_password(website)
     websites = view_websites()
     return render_template('dashboard.html', password=password, site=website, websites=websites)
+
+@app.route('/delete/<website>', methods=['POST'])
+def delete_password(website):
+    data = load_passwords()
+    data = [entry for entry in data if entry['website'] != website]
+    save_passwords(data)
+    return jsonify({'success': True})
+
+@app.route('/edit/<website>', methods=['POST'])
+def edit_password(website):
+    new_password = request.form.get('new_password')
+    data = load_passwords()
+    for entry in data:
+        if entry['website'] == website:
+            entry['password'] = encrypt_password(new_password)
+            break
+    save_passwords(data)
+    return jsonify({'success': True})
 
 @app.route('/logout')
 def logout():

@@ -9,18 +9,18 @@
 </head>
 <body>
     <div class="container">
-        <img src="../static/logo.png" alt="myImage" width="400px">
-        
-    <!-- Add Password Form -->
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="myImage" width="400px">
+
+        <!-- Add Password Form -->
         <div class="auth-form" style="margin-top: 0px; min-width: 180%; color:#383c4c;">
             <h2>Add New Password <span class="star">★</span></h2>
             <form action="/add" method="POST">
                 <label for="website">Website</label>
                 <input type="text" id="website" name="website" placeholder="Website name" required>
-                
+
                 <label for="username">Username/Email</label>
                 <input type="text" id="username" name="username" placeholder="Your username or email for this site">
-                
+
                 <div class="password-field">
                     <label for="password">Password</label>
                     <div class="password-container">
@@ -33,14 +33,14 @@
                         </span>
                     </div>
                 </div>
-                
+
                 <button type="submit" class="add-password-btn">Save Password</button>
             </form>
         </div>
 
+        <!-- Passwords Display -->
         <div class="pass-form" style="min-width: 180%;color: #383c4c;">
             <h1>My Passwords <span class="star">★</span></h1>
-            
             <div class="password-grid">
                 {% if websites %}
                     {% for site in websites %}
@@ -72,9 +72,9 @@
             </div>
         </div>
 
+        <!-- MFA Section -->
         <div class="MFA-form" style="min-width: 180%; color: #383c4c;">
             <h2 class="section-title">Setup MFA <span class="star">★</span></h2>
-            
             <div class="password-grid">
                 <div class="password-card">
                     <h3>Email</h3>
@@ -86,7 +86,7 @@
                         <button class="delete-btn"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
-                
+
                 <div class="password-card">
                     <h3>Phone Number</h3>
                     <div class="card-content">
@@ -97,7 +97,7 @@
                         <button class="delete-btn"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
-                
+
                 <div class="password-card">
                     <h3>Security Question</h3>
                     <div class="card-content">
@@ -110,35 +110,52 @@
                 </div>
             </div>
         </div>
+
         <div class="profile-section" style="margin-top: 40px;">
             <a href="/profile">Profile <span class="star">★</span></a>
         </div>
     </div>
 
+    <!-- JavaScript -->
     <script>
-        // Password visibility toggle
-        document.querySelector('.eye-icon').addEventListener('click', function() {
-            const passwordField = document.getElementById('password');
-            if (passwordField.type === 'password') {
-                passwordField.type = 'text';
-            } else {
-                passwordField.type = 'password';
+        document.addEventListener("DOMContentLoaded", function () {
+            const eyeIcon = document.querySelector('.eye-icon');
+            if (eyeIcon) {
+                eyeIcon.addEventListener('click', function () {
+                    const passwordField = document.getElementById('password');
+                    if (passwordField) {
+                        passwordField.type = passwordField.type === 'password' ? 'text' : 'password';
+                    }
+                });
             }
+
+            window.deletePassword = function (website) {
+                if (confirm('Are you sure you want to delete password for ' + website + '?')) {
+                    fetch(`/delete/${website}`, {
+                        method: 'POST'
+                    }).then(res => res.json())
+                    .then(data => {
+                        if (data.success) location.reload();
+                    });
+                }
+            };
+
+            window.editPassword = function (website) {
+                const newPassword = prompt("Enter new password for " + website);
+                if (newPassword) {
+                    const formData = new FormData();
+                    formData.append('new_password', newPassword);
+
+                    fetch(`/edit/${website}`, {
+                        method: 'POST',
+                        body: formData
+                    }).then(res => res.json())
+                    .then(data => {
+                        if (data.success) location.reload();
+                    });
+                }
+            };
         });
-        
-        // Functions for edit and delete
-        function editPassword(website) {
-            // Your edit logic here
-            console.log('Edit password for', website);
-        }
-        
-        function deletePassword(website) {
-            if (confirm('Are you sure you want to delete password for ' + website + '?')) {
-                // Your delete logic here
-                console.log('Delete password for', website);
-                // You'll need to add a form submission or fetch request to your backend
-            }
-        }
     </script>
 </body>
 </html>
